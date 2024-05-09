@@ -5,4 +5,4 @@ interface colors {
   color3: string
   color4: string
 }
-export const storeColor = writable([])
+export const storeColor = writable({} as colors)

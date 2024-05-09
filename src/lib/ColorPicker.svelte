@@ -1,6 +1,7 @@
 <script lang="ts">
   import { onMount } from "svelte";
   import chroma from "chroma-js";
+  import { storeColor } from "./StoreColor";
 
   export let id: string = "";
   let canvas: HTMLCanvasElement = document.querySelector("#canvas")!;
@@ -77,6 +78,14 @@
     drawCanvas();
     pixel = context2D.getImageData(x, y, 1, 1).data;
     color = chroma([pixel[0], pixel[1], pixel[2]]).hex();
+    // should set the key value color 1 if the key is color 1
+    storeColor.update((current) => {
+      return {
+        ...current,
+        // should be color 1 : value color for example
+        color1: color,
+      };
+    });
     drawMarker(x, y);
   }
   function drawMarker(x: number, y: number) {
