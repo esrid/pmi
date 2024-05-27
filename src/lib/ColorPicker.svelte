@@ -2,35 +2,51 @@
   import { onMount } from "svelte";
   import chroma from "chroma-js";
   import { storeColor } from "./StoreColor";
-
+  import { debounce } from "./utils";
+  export let key: string = "";
   export let id: string = "";
+  export let color = "";
   let canvas: HTMLCanvasElement = document.querySelector("#canvas")!;
   let rainbows: HTMLCanvasElement = document.querySelector("#rainbows")!;
-  let color = chroma.random().hex();
   let context2D: CanvasRenderingContext2D;
   let rainbows2D: CanvasRenderingContext2D;
   let pixel;
-  function Copy(
-    e: MouseEvent & { currentTarget: EventTarget & HTMLButtonElement },
-  ) {
-    const input: HTMLInputElement = document.querySelector(id)!;
+  function Copy() {
+    const input: HTMLInputElement = document.querySelector(`#${id}`)!;
     input.select();
     input.setSelectionRange(0, 9999);
     navigator.clipboard.writeText(input.value);
     return;
   }
-  function inputChangeColor(
-    e: Event & { currentTarget: EventTarget & HTMLInputElement },
-  ) {
-    let value = e.currentTarget.value;
+
+  function inputChangeColor(value: string) {
     value = value.replace(/[()]/g, "");
     if (value.includes(",")) {
       let Mapvalue = value.split(",").map(Number);
       color = chroma(Mapvalue).hex();
+      drawCanvas();
+      storeColor.update((current) => {
+        return {
+          ...current,
+          id: color,
+        };
+      });
       return;
     }
     color = chroma(value).hex();
+    drawCanvas();
+    storeColor.update((current) => {
+      return {
+        ...current,
+        id: color,
+      };
+    });
     return;
+  }
+  const event_debounce = debounce(inputChangeColor, 300);
+  function makedebounce(event: Event) {
+    const input = event.target as HTMLInputElement;
+    event_debounce(input.value);
   }
 
   function drawRainbows() {
@@ -41,6 +57,7 @@
       rainbows2D.fillStyle = `hsl(${hue}, 100%, 50%)`;
       rainbows2D.fillRect(0, i, width, 1);
     }
+    return;
   }
 
   function drawCanvas() {
@@ -48,7 +65,7 @@
       0,
       0,
       context2D.canvas.width,
-      0,
+      150,
     );
 
     HorizontalGradient.addColorStop(0, "#fff");
@@ -61,12 +78,19 @@
     VeritalGradient.addColorStop(1, "#000");
     context2D.fillStyle = VeritalGradient;
     context2D.fillRect(0, 0, context2D.canvas.width, context2D.canvas.height);
+    return;
   }
   onMount(() => {
     context2D = canvas.getContext("2d")!;
     rainbows2D = rainbows.getContext("2d")!;
     drawCanvas();
     drawRainbows();
+    storeColor.update((current) => {
+      return {
+        ...current,
+        [key]: color,
+      };
+    });
   });
 
   function clickEvent(
@@ -82,8 +106,7 @@
     storeColor.update((current) => {
       return {
         ...current,
-        // should be color 1 : value color for example
-        color1: color,
+        [key]: color,
       };
     });
     drawMarker(x, y);
@@ -116,7 +139,7 @@
   }
 </script>
 
-<div class="flex flex-col rounded-md shadow-md p-1 bg-white">
+<div class="flex flex-col rounded-md shadow-md p-1 bg-white" data-key={key}>
   <div class="flex flex-row gap-2 p-1 m-1">
     <canvas
       height="200"
@@ -133,14 +156,14 @@
       id="rainbows"
       class="border-black border-2 rounded-md"
       bind:this={rainbows}
-      on:mousemove={mouseEventRainbows}
+      on:click={mouseEventRainbows}
     ></canvas>
   </div>
   <div class="flex flex-row justify-center items-center gap-1">
     <input
       type="text"
       bind:value={color}
-      on:input={inputChangeColor}
+      on:input={makedebounce}
       {id}
       class="border border-black text-center"
     />

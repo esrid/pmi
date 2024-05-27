@@ -26,6 +26,7 @@
     "@easylogic/colorpicker": "^1.10.11",
     "@types/chroma-js": "^2.4.4",
     "chroma-js": "^2.4.2",
+    "highlight.js": "^11.9.0",
     "svelte-awesome-color-picker": "^3.0.6"
   }
 }

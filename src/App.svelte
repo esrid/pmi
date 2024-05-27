@@ -1,37 +1,48 @@
-<script>
-  import ColorPicker from "./lib/ColorPicker.svelte";
+<script lang="ts">
+  import Bar from "./lib/Bar.svelte";
   import Header from "./lib/Header.svelte";
   import SectionA from "./lib/SectionA.svelte";
-  import SectionB from "./lib/SectionB.svelte";
-  import SectionC from "./lib/SectionC.svelte";
-  import ShowPicker from "./lib/ShowPicker.svelte";
+  import { storeColor } from "./lib/StoreColor";
+  import Tab from "./lib/tab.svelte";
+  let hidden = true;
+  function toggle() {
+    hidden = !hidden;
+  }
+  function ClickOutside(node: Node) {
+    const handleClick = (event: MouseEvent) => {
+      if (node && !node.contains(event.target as Node) && !hidden) {
+        hidden = true;
+        node.dispatchEvent(new CustomEvent("TABEVENT"));
+        event.stopPropagation();
+      }
+    };
+
+    document.addEventListener("click", handleClick, true);
+
+    return {
+      destroy() {
+        document.removeEventListener("click", handleClick, true);
+      },
+    };
+  }
 </script>
 
-<Header />
-<main class="flex Justify-center items-center flex-col">
-  <SectionA />
-  <SectionB />
-  <SectionC />
-  <div class="bg-blue-500 fixed bottom-0 m-4tom-0 m-4">
-    <div class=" relative flex justify-around">
-      <div>
-        <ShowPicker id="text" />
-        <ShowPicker id="color1" />
-        <ShowPicker id="color2" />
-        <ShowPicker id="color3" />
-        <ShowPicker id="color4" />
-      </div>
-      <div class="flex gap-1">
-        <div>
-          <span> arrow left </span>
-          <span> arrow right </span>
-        </div>
-        <span> shift </span>
-        <span> generer </span>
-        <span> share </span>
-        <span> exporter </span>
-      </div>
+<main>
+  <Header />
+  <div
+    class="flex Justify-center items-center flex-col relative"
+    style="background: {$storeColor.background};"
+  >
+    <SectionA />
+    <!-- <SectionB /> -->
+    <!-- <SectionC /> -->
+    <div
+      class="fixed left-1/2 -translate-x-1/2 translate-y-1/2 w-max h-max bg-white rounded-md shadow-md px-3 py-2"
+      class:hidden
+      use:ClickOutside
+    >
+      <Tab />
     </div>
+    <Bar on:click={toggle} />
   </div>
-  <ColorPicker />
 </main>
